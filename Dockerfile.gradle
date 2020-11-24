@@ -1,0 +1,22 @@
+# Build stage builds the JAR
+FROM gradle:jdk8-openj9 AS builder
+
+
+RUN mkdir /app
+
+COPY . /app
+
+WORKDIR /app
+
+RUN gradle build
+
+RUN ls /app/build/libs/
+
+# Final Stage copies the JAR from previous builder and setups to run
+FROM openjdk:16-jdk-alpine
+RUN mkdir /target
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+# Copy JAR from builder
+COPY --from=builder /app/build/libs/*.jar app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]

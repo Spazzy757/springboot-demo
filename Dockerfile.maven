@@ -27,7 +27,5 @@ RUN mkdir /target
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 # Copy JAR from builder
-COPY --from=builder /app/target/*.jar /target/
-ARG JAR_FILE=/target/*.jar
-COPY ${JAR_FILE} app.jar
+COPY --from=builder /app/target/*.jar app.jar
 ENTRYPOINT ["java","-jar","/app.jar"]
