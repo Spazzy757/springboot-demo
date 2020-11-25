@@ -1,19 +1,27 @@
 # Build stage builds the JAR
 FROM maven:3 AS builder
 
-RUN mkdir /app
+# make build directory
+RUN mkdir /build
 
-COPY . /app
+# Copy Files into build container
+COPY . /build
 
-WORKDIR /app
+# Change to build directroy
+WORKDIR /build
 
+# package the java application
 RUN mvn package
 
 # Final Stage copies the JAR from previous builder and setups to run
 FROM openjdk:16-jdk-alpine
-RUN mkdir /target
+
+# Setup user so application doesnt run as root
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
+
 # Copy JAR from builder
 COPY --from=builder /app/target/*.jar app.jar
+
+# Starting app
 ENTRYPOINT ["java","-jar","/app.jar"]
