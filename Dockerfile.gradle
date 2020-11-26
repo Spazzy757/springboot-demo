@@ -1,5 +1,5 @@
 # Build stage builds the JAR
-FROM gradle:jdk8-openj9 AS builder
+FROM gradle:jdk11-openj9 AS builder
 
 # Create build directory
 RUN mkdir /build
@@ -14,14 +14,13 @@ WORKDIR /build
 RUN gradle build
 
 # Final Stage copies the JAR from previous builder and setups to run
-FROM openjdk:16-jdk-alpine
+FROM gcr.io/distroless/java:11
 
-# Change user so that we are not using root
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
+# Use non root user
+USER nonroot:nonroot
 
-# Copy JAR from builder
-COPY --from=builder /build/build/libs/*.jar app.jar
+# Copy JAR from builder changing ownership to the java user
+COPY --from=builder --chown=nonroot:nonroot /build/build/libs/*.jar app.jar
 
-# Set entry point 
+# Set entry point to start app
 ENTRYPOINT ["java","-jar","/app.jar"]

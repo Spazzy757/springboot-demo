@@ -14,14 +14,13 @@ WORKDIR /build
 RUN mvn package
 
 # Final Stage copies the JAR from previous builder and setups to run
-FROM openjdk:16-jdk-alpine
+FROM gcr.io/distroless/java:11
 
-# Setup user so application doesnt run as root
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
+# Use non root user
+USER nonroot:nonroot
 
-# Copy JAR from builder
-COPY --from=builder /app/target/*.jar app.jar
+# Copy JAR from builder changing ownership to java user
+COPY --from=builder --chown=nonroot:nonroot /build/target/*.jar app.jar
 
-# Starting app
+# Set entry point to start app
 ENTRYPOINT ["java","-jar","/app.jar"]
